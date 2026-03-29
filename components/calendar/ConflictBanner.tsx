@@ -6,6 +6,12 @@ interface ConflictBannerProps {
   bookmarks: Bookmark[]
 }
 
+// YYYY-MM-DD を YYYY年M月D日 形式に変換する
+function formatDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split('-')
+  return `${year}年${parseInt(month)}月${parseInt(day)}日`
+}
+
 // exam_date が同日の bookmark が2件以上ある場合に警告表示
 export function ConflictBanner({ bookmarks }: ConflictBannerProps) {
   const dateCounts = bookmarks.reduce<Record<string, number>>((acc, b) => {
@@ -16,6 +22,7 @@ export function ConflictBanner({ bookmarks }: ConflictBannerProps) {
   const conflictDates = Object.entries(dateCounts)
     .filter(([, count]) => count > 1)
     .map(([date]) => date)
+    .sort()
 
   if (conflictDates.length === 0) return null
 
@@ -27,7 +34,7 @@ export function ConflictBanner({ bookmarks }: ConflictBannerProps) {
       <div>
         <h3 className="text-destructive font-bold text-base">試験日の重複が検出されました！</h3>
         <p className="text-text-main/80 text-sm mt-1">
-          {conflictDates.join('、')} に複数の試験が重複しています。スケジュールを再確認してください。
+          {conflictDates.map(formatDate).join('、')} に複数の試験が重複しています。スケジュールを再確認してください。
         </p>
       </div>
     </div>
