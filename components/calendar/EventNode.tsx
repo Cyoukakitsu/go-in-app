@@ -1,16 +1,11 @@
 import { FlatEvent, EVENT_CONFIG } from './types'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
+import { formatDate } from './utils'
 
 interface EventNodeProps {
   event: FlatEvent
   dimmed: boolean       // 非選択校のとき true → opacity-30
   conflicted: boolean   // exam_date が重複しているとき true
-}
-
-// 日付を日本語形式で表示
-function formatDate(dateStr: string): string {
-  const [year, month, day] = dateStr.split('-')
-  return `${year}年${parseInt(month)}月${parseInt(day)}日`
 }
 
 // 日付からカウントダウン文字列を生成
@@ -39,8 +34,8 @@ export function EventNode({ event, dimmed, conflicted }: EventNodeProps) {
 
       {/* イベント内容 */}
       <div
-        className={`flex-1 bg-[#FFFCF8] border rounded-xl p-3 mb-2 ${
-          conflicted ? 'border-destructive/30' : 'border-[rgba(111,78,55,0.12)]'
+        className={`flex-1 bg-bg-card border rounded-xl p-3 mb-2 ${
+          conflicted ? 'border-destructive/30' : 'border-border-custom'
         }`}
       >
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -51,12 +46,12 @@ export function EventNode({ event, dimmed, conflicted }: EventNodeProps) {
             >
               {config.label}
             </span>
-            <p className="text-[#3D2B1F] font-semibold text-sm mt-1">{event.university_name}</p>
-            <p className="text-[#8B7355] text-xs">{event.department}</p>
+            <p className="text-text-main font-semibold text-sm mt-1">{event.university_name}</p>
+            <p className="text-text-sub text-xs">{event.department}</p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-[#3D2B1F] font-bold text-sm">{formatDate(event.date)}</p>
-            <p className="text-[#A89279] text-xs mt-0.5">{getCountdown(event.date)}</p>
+            <p className="text-text-main font-bold text-sm">{formatDate(event.date)}</p>
+            <p className="text-text-muted text-xs mt-0.5">{getCountdown(event.date)}</p>
           </div>
         </div>
       </div>
