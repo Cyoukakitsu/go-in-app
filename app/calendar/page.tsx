@@ -82,7 +82,7 @@ export default function CalendarPage() {
             </Link>
           </div>
         ) : (
-          <div className="flex gap-6 items-start">
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
             <SchoolSidebar
               bookmarks={MOCK_BOOKMARKS}
               selectedId={selectedSchoolId}

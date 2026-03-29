@@ -36,7 +36,7 @@ export interface FlatEvent {
 // イベント種別ごとの表示設定
 export const EVENT_CONFIG: Record<EventType, { label: string; color: string }> = {
   application_start: { label: '出願開始', color: '#C4956A' },
-  application_end:   { label: '出願締切', color: '#E8463A' },
+  application_end:   { label: '出願締切', color: '#AF4448' },
   exam_date:         { label: '試験日',   color: '#6F4E37' },
   interview_date:    { label: '面接日',   color: '#3D6B5A' },
   result_date:       { label: '合格発表', color: '#8B5E3C' },

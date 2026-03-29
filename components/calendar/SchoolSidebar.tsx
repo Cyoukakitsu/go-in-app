@@ -1,5 +1,4 @@
 import { Bookmark } from './types'
-import { Badge } from '@/components/ui/badge'
 
 interface SchoolSidebarProps {
   bookmarks: Bookmark[]
@@ -17,7 +16,7 @@ const STATUS_LABEL: Record<Bookmark['status'], string> = {
 
 export function SchoolSidebar({ bookmarks, selectedId, onSelect }: SchoolSidebarProps) {
   return (
-    <aside className="w-60 shrink-0 bg-bg-card border border-border-custom rounded-2xl overflow-hidden self-start sticky top-6">
+    <aside className="w-full lg:w-60 shrink-0 bg-bg-card border border-border-custom rounded-2xl overflow-hidden self-start lg:sticky lg:top-6">
       <div className="p-4 border-b border-border-custom">
         <h2 className="text-text-main font-bold text-sm">大学名称</h2>
       </div>
