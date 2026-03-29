@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans, Noto_Sans_JP, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Navbar } from "@/components/Navbar";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -21,8 +22,8 @@ const notoTranslate = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  title: "院GO | 日本大学院志望校管理ツール",
-  description: "留学生のための大学院出願・試験日程管理ツール",
+  title: "GO院 | 日本大学院志望校管理ツール",
+  description: "留学生のための大学院出愿・試験日程管理ツール",
 };
 
 export default function RootLayout({
@@ -35,7 +36,10 @@ export default function RootLayout({
       lang="ja"
       className={cn("h-full", "antialiased", playfair.variable, dmSans.variable, notoTranslate.variable, "font-sans", geist.variable)}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans relative">
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }
