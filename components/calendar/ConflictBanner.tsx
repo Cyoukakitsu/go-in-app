@@ -1,15 +1,10 @@
 // components/calendar/ConflictBanner.tsx
 import { AlertTriangle } from 'lucide-react'
 import { Bookmark } from './types'
+import { formatDate } from './utils'
 
 interface ConflictBannerProps {
   bookmarks: Bookmark[]
-}
-
-// YYYY-MM-DD を YYYY年M月D日 形式に変換する
-function formatDate(dateStr: string): string {
-  const [year, month, day] = dateStr.split('-')
-  return `${year}年${parseInt(month)}月${parseInt(day)}日`
 }
 
 // exam_date が同日の bookmark が2件以上ある場合に警告表示
