@@ -17,18 +17,18 @@ const STATUS_LABEL: Record<Bookmark['status'], string> = {
 
 export function SchoolSidebar({ bookmarks, selectedId, onSelect }: SchoolSidebarProps) {
   return (
-    <aside className="w-60 shrink-0 bg-[#FFFCF8] border border-[rgba(111,78,55,0.12)] rounded-2xl overflow-hidden self-start sticky top-6">
-      <div className="p-4 border-b border-[rgba(111,78,55,0.12)]">
-        <h2 className="text-[#3D2B1F] font-bold text-sm">大学名称</h2>
+    <aside className="w-60 shrink-0 bg-bg-card border border-border-custom rounded-2xl overflow-hidden self-start sticky top-6">
+      <div className="p-4 border-b border-border-custom">
+        <h2 className="text-text-main font-bold text-sm">大学名称</h2>
       </div>
 
       {/* 全て表示ボタン */}
       <button
         onClick={() => onSelect(null)}
-        className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors border-b border-[rgba(111,78,55,0.12)] ${
+        className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors border-b border-border-custom ${
           selectedId === null
-            ? 'bg-[rgba(111,78,55,0.05)] text-[#6F4E37] border-l-2 border-l-[#6F4E37]'
-            : 'text-[#8B7355] hover:bg-[#FFFAF5] border-l-2 border-l-transparent'
+            ? 'bg-primary/5 text-primary border-l-2 border-l-primary'
+            : 'text-text-sub hover:bg-bg-hover border-l-2 border-l-transparent'
         }`}
       >
         すべて表示
@@ -38,28 +38,28 @@ export function SchoolSidebar({ bookmarks, selectedId, onSelect }: SchoolSidebar
         const isSelected = selectedId === b.id
         const typeColor =
           b.type === '国立' || b.type === '公立'
-            ? 'bg-[rgba(86,130,115,0.12)] text-[#3D6B5A]'
-            : 'bg-[rgba(160,110,90,0.12)] text-[#8B5E3C]'
+            ? 'bg-badge-public text-badge-public-text'
+            : 'bg-badge-private text-badge-private-text'
 
         return (
           <button
             key={b.id}
             onClick={() => onSelect(isSelected ? null : b.id)}
-            className={`w-full text-left px-4 py-3 transition-colors border-b border-[rgba(111,78,55,0.12)] last:border-b-0 ${
+            className={`w-full text-left px-4 py-3 transition-colors border-b border-border-custom last:border-b-0 ${
               isSelected
-                ? 'bg-[rgba(111,78,55,0.05)] border-l-2 border-l-[#6F4E37]'
-                : 'hover:bg-[#FFFAF5] border-l-2 border-l-transparent'
+                ? 'bg-primary/5 border-l-2 border-l-primary'
+                : 'hover:bg-bg-hover border-l-2 border-l-transparent'
             }`}
           >
-            <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-[#6F4E37]' : 'text-[#3D2B1F]'}`}>
+            <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-primary' : 'text-text-main'}`}>
               {b.university_name}
             </p>
-            <p className="text-[#8B7355] text-xs mt-0.5 truncate">{b.department}</p>
+            <p className="text-text-sub text-xs mt-0.5 truncate">{b.department}</p>
             <div className="flex items-center gap-1.5 mt-1.5">
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${typeColor}`}>
                 {b.type}
               </span>
-              <span className="text-[10px] text-[#A89279]">{STATUS_LABEL[b.status]}</span>
+              <span className="text-[10px] text-text-muted">{STATUS_LABEL[b.status]}</span>
             </div>
           </button>
         )
