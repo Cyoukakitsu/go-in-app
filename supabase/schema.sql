@@ -16,6 +16,7 @@ CREATE TABLE university_schedules (
   application_start DATE,
   application_end DATE,
   exam_date DATE,
+  interview_date DATE,
   result_date DATE,
   year INT NOT NULL,
   tags TEXT[] DEFAULT '{}'::text[],

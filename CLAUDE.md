@@ -182,22 +182,24 @@ CREATE POLICY "Anyone can view schedules"
 
 ```css
 /* Tailwind CSS カスタムカラー設定 */
---color-primary: #6f4e37; /* 深いコーヒーブラウン — メインカラー */
---color-accent: #c4956a; /* キャラメル — アクセント */
---color-accent-light: #d4a574; /* ライトキャラメル — サブアクセント */
---color-accent-pale: #e8c9a0; /* ペールキャラメル — グラデーション用 */
---color-bg-main: #fff8f0; /* クリームホワイト — 背景メイン */
---color-bg-card: #fffcf8; /* ウォームホワイト — カード背景 */
---color-bg-hover: #fffaf5; /* ホバー背景 */
---color-text-main: #3d2b1f; /* ダークブラウン — テキストメイン */
---color-text-sub: #8b7355; /* ミディアムブラウン — テキストサブ */
---color-text-muted: #a89279; /* ライトブラウン — テキスト薄め */
---color-border: rgba(111, 78, 55, 0.12); /* ボーダー */
---color-border-hover: #d4a574; /* ホバー時ボーダー */
---color-badge-public: rgba(86, 130, 115, 0.12); /* 国公立バッジ背景 */
---color-badge-public-text: #3d6b5a; /* 国公立バッジテキスト */
---color-badge-private: rgba(160, 110, 90, 0.12); /* 私立バッジ背景 */
---color-badge-private-text: #8b5e3c; /* 私立バッジテキスト */
+:root {
+  --color-primary: #6f4e37; /* 深いコーヒーブラウン — メインカラー */
+  --color-accent: #c4956a; /* キャラメル — アクセント */
+  --color-accent-light: #d4a574; /* ライトキャラメル — サブアクセント */
+  --color-accent-pale: #e8c9a0; /* ペールキャラメル — グラデーション用 */
+  --color-bg-main: #fff8f0; /* クリームホワイト — 背景メイン */
+  --color-bg-card: #fffcf8; /* ウォームホワイト — カード背景 */
+  --color-bg-hover: #fffaf5; /* ホバー背景 */
+  --color-text-main: #3d2b1f; /* ダークブラウン — テキストメイン */
+  --color-text-sub: #8b7355; /* ミディアムブラウン — テキストサブ */
+  --color-text-muted: #a89279; /* ライトブラウン — テキスト薄め */
+  --color-border: rgba(111, 78, 55, 0.12); /* ボーダー */
+  --color-border-hover: #d4a574; /* ホバー時ボーダー */
+  --color-badge-public: rgba(86, 130, 115, 0.12); /* 国公立バッジ背景 */
+  --color-badge-public-text: #3d6b5a; /* 国公立バッジテキスト */
+  --color-badge-private: rgba(160, 110, 90, 0.12); /* 私立バッジ背景 */
+  --color-badge-private-text: #8b5e3c; /* 私立バッジテキスト */
+}
 ```
 
 ### デザイン原則
@@ -217,25 +219,24 @@ shadcn/uiのコンポーネントを使用する際は、上記カラーパレ�
 
 ```tsx
 // カード
-<div className="bg-[#FFFCF8] border border-[rgba(111,78,55,0.12)] rounded-2xl p-5
-                hover:bg-[#FFFAF5] hover:border-[#D4A574] hover:-translate-y-0.5
-                hover:shadow-lg transition-all duration-250">
+<div className="bg-bg-card border border-border-custom rounded-2xl p-5
+                hover:bg-bg-hover hover:border-[#D4A574] hover:-translate-y-0.5
+                hover:shadow-lg transition-all duration-300">
 
 // プライマリボタン
-<Button className="bg-[#6F4E37] text-[#FFF8F0] rounded-xl px-5 py-2 font-medium
+<Button className="bg-[#6F4E37] text-bg-main rounded-xl px-5 py-2 font-medium
                    hover:opacity-90 transition-all">
 
 // アウトラインボタン
-<Button variant="outline" className="border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl
-                                     hover:bg-[#6F4E37] hover:text-[#FFF8F0] transition-all">
+<Button variant="outline" className="border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl hover:bg-[#6F4E37] hover:text-bg-main transition-all">
 
 // 検索インプット
 <Input className="pl-11 pr-5 py-3.5 border-[1.5px] border-[rgba(111,78,55,0.15)] rounded-xl
-                  bg-[#FFFCF8] text-[#3D2B1F] focus:border-[#C4956A]
-                  focus:ring-3 focus:ring-[rgba(196,149,106,0.15)]" />
+                  bg-bg-card text-text-main focus:border-accent-custom
+                  focus:ring-2 focus:ring-[rgba(196,149,106,0.15)]" />
 
 // カテゴリピル（アクティブ）
-<span className="bg-[#6F4E37] text-[#FFF8F0] rounded-full px-4 py-1.5 text-sm font-medium">
+<span className="bg-[#6F4E37] text-bg-main  rounded-full px-4 py-1.5 text-sm font-medium">
 
 // カテゴリピル（非アクティブ）
 <span className="bg-[rgba(111,78,55,0.06)] text-[#6F4E37] rounded-full px-4 py-1.5 text-sm font-medium">
