@@ -13,7 +13,7 @@ export function Navbar() {
 
   const navItems = [
     { name: "Dashboard", href: "/dashboard", icon: School },
-    { name: "カレンダー", href: "/calendar", icon: Calendar },
+    { name: "マイカレンダー", href: "/calendar", icon: Calendar },
     { name: "ログイン", href: "/auth/login", icon: User },
   ];
 

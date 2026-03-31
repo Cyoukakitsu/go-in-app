@@ -43,7 +43,7 @@ export default function CalendarPage() {
                 }`}
               >
                 <LayoutList className="w-4 h-4" />
-                Timeline
+                一覧
               </button>
               <button
                 onClick={() => setActiveView('gantt')}
@@ -54,7 +54,7 @@ export default function CalendarPage() {
                 }`}
               >
                 <GanttChartSquare className="w-4 h-4" />
-                Gantt
+                年表
               </button>
             </div>
 
