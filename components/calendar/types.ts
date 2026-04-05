@@ -41,3 +41,41 @@ export const EVENT_CONFIG: Record<EventType, { label: string; color: string }> =
   interview_date:    { label: '面接日',   color: '#3D6B5A' },
   result_date:       { label: '合格発表', color: '#8B5E3C' },
 }
+
+// DB行の型（user_schedulesテーブル）
+export interface UserScheduleRow {
+  id: string
+  user_id: string
+  university_schedule_id: string | null
+  university_name: string
+  university_name_zh: string | null
+  university_type: string
+  department: string | null
+  application_start: string | null
+  application_end: string | null
+  exam_date: string | null
+  interview_date: string | null
+  result_date: string | null
+  status: string
+  notes: string | null
+  created_at: string
+}
+
+// DB行 → Bookmark型へのマッパー
+export function toBookmark(row: UserScheduleRow): Bookmark {
+  return {
+    id: row.id,
+    university_name: row.university_name,
+    university_name_zh: row.university_name_zh ?? '',
+    department: row.department ?? '',
+    type: (row.university_type as UniversityType) ?? '私立',
+    status: (row.status as BookmarkStatus) ?? 'planning',
+    schedule: {
+      application_start: row.application_start ?? '',
+      application_end: row.application_end ?? '',
+      exam_date: row.exam_date ?? '',
+      interview_date: row.interview_date ?? null,
+      result_date: row.result_date ?? '',
+    },
+  }
+}
