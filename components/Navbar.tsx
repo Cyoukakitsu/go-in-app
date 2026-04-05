@@ -41,6 +41,13 @@ export function Navbar() {
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-lg border border-border-custom rounded-full px-4 py-2 flex items-center gap-2 shadow-2xl z-50 md:top-6 md:bottom-auto md:h-14">
       <div className="flex items-center gap-1">
+        {user && (
+          <div className="hidden md:flex items-center gap-2 px-4 py-2 text-sm font-bold text-primary border-r border-border-custom mr-2">
+            <span className="truncate max-w-[150px]">
+              {user.user_metadata?.full_name || user.email?.split("@")[0]} 様
+            </span>
+          </div>
+        )}
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS user_schedules (
   university_name         text NOT NULL,
   university_name_zh      text,
   university_type         text NOT NULL DEFAULT '私立'
-    CHECK (university_type IN ('国立', '公立', '私立')),
+    CHECK (university_type IN ('国立', '公立', '私立', '国公立')),
   department              text,
   -- 日程
   application_start       date,
