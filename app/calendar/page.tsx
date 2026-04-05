@@ -1,20 +1,64 @@
 // app/calendar/page.tsx
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { CalendarIcon, LayoutList, GanttChartSquare } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { CalendarIcon, LayoutList, GanttChartSquare, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SchoolSidebar } from '@/components/calendar/SchoolSidebar'
 import { TimelineView } from '@/components/calendar/TimelineView'
 import { GanttView } from '@/components/calendar/GanttView'
 import { ConflictBanner } from '@/components/calendar/ConflictBanner'
-import { MOCK_BOOKMARKS } from '@/components/calendar/mockData'
-import type { ViewType } from '@/components/calendar/types'
+import { AddScheduleModal } from '@/components/calendar/AddScheduleModal'
+import { toBookmark } from '@/components/calendar/types'
+import type { Bookmark, ViewType, UserScheduleRow } from '@/components/calendar/types'
+import { createBrowserClient } from '@/lib/supabase/browser'
 
 export default function CalendarPage() {
+  const router = useRouter()
   const [activeView, setActiveView] = useState<ViewType>('timeline')
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null)
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+
+  const fetchBookmarks = async () => {
+    const supabase = createBrowserClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      router.push('/auth/login')
+      return
+    }
+
+    const { data } = await supabase
+      .from('user_schedules')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    setBookmarks((data as UserScheduleRow[] ?? []).map(toBookmark))
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchBookmarks()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleDelete = async (id: string) => {
+    const supabase = createBrowserClient()
+    await supabase.from('user_schedules').delete().eq('id', id)
+    setBookmarks((prev) => prev.filter((b) => b.id !== id))
+    if (selectedSchoolId === id) setSelectedSchoolId(null)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg-main flex items-center justify-center">
+        <p className="text-text-sub">読み込み中...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-bg-main py-10 px-6">
@@ -32,7 +76,6 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* ビュー切替ボタン */}
             <div className="flex items-center bg-bg-card border border-border-custom rounded-xl p-1 gap-1">
               <button
                 onClick={() => setActiveView('timeline')}
@@ -58,53 +101,60 @@ export default function CalendarPage() {
               </button>
             </div>
 
-            <Link href="/dashboard">
-              <Button className="bg-primary text-white rounded-xl font-bold px-5 h-10 shadow-md hover:opacity-90 transition-all">
-                学校を追加する
-              </Button>
-            </Link>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              className="bg-primary text-white rounded-xl font-bold px-5 h-10 shadow-md hover:opacity-90 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              学校を追加
+            </Button>
           </div>
         </header>
 
         {/* 重複警告バナー */}
-        <ConflictBanner bookmarks={MOCK_BOOKMARKS} />
+        <ConflictBanner bookmarks={bookmarks} />
 
-        {/* メインコンテンツ: サイドバー + ビューエリア */}
-        {MOCK_BOOKMARKS.length === 0 ? (
+        {/* メインコンテンツ */}
+        {bookmarks.length === 0 ? (
           <div className="text-center py-32 bg-bg-card rounded-3xl border border-dashed border-border-custom">
             <CalendarIcon className="w-16 h-16 text-text-muted mx-auto mb-6" />
             <h3 className="text-xl font-serif text-text-main">カレンダーは空です</h3>
             <p className="text-text-sub mt-2 mb-8">志望校を追加してスケジュールを管理しましょう。</p>
-            <Link href="/dashboard">
-              <Button className="bg-primary text-white rounded-xl font-bold px-8 h-12 shadow-lg">
-                学校を探す
-              </Button>
-            </Link>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              className="bg-primary text-white rounded-xl font-bold px-8 h-12 shadow-lg"
+            >
+              学校を追加する
+            </Button>
           </div>
         ) : (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             <SchoolSidebar
-              bookmarks={MOCK_BOOKMARKS}
+              bookmarks={bookmarks}
               selectedId={selectedSchoolId}
               onSelect={setSelectedSchoolId}
+              onDelete={handleDelete}
             />
-
             <div className="flex-1 bg-bg-card border border-border-custom rounded-2xl p-6 min-h-[600px] flex flex-col">
               {activeView === 'timeline' ? (
-                <TimelineView
-                  bookmarks={MOCK_BOOKMARKS}
-                  selectedId={selectedSchoolId}
-                />
+                <TimelineView bookmarks={bookmarks} selectedId={selectedSchoolId} />
               ) : (
-                <GanttView
-                  bookmarks={MOCK_BOOKMARKS}
-                  selectedId={selectedSchoolId}
-                />
+                <GanttView bookmarks={bookmarks} selectedId={selectedSchoolId} />
               )}
             </div>
           </div>
         )}
       </div>
+
+      {showAddModal && (
+        <AddScheduleModal
+          onClose={() => setShowAddModal(false)}
+          onAdded={() => {
+            setShowAddModal(false)
+            fetchBookmarks()
+          }}
+        />
+      )}
     </div>
   )
 }
