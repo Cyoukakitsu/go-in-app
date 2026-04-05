@@ -1,10 +1,27 @@
 // components/calendar/GanttView.tsx
 import { Bookmark, EVENT_CONFIG } from './types'
 import { differenceInCalendarDays, parseISO, format, addDays } from 'date-fns'
+import { AlertTriangle } from 'lucide-react'
 
 interface GanttViewProps {
   bookmarks: Bookmark[]
   selectedId: string | null
+}
+
+// exam_dateが重複しているbookmarkIdのセット
+function getConflictedIds(bookmarks: Bookmark[]): Set<string> {
+  const dateCounts: Record<string, string[]> = {}
+  for (const b of bookmarks) {
+    const d = b.schedule.exam_date
+    if (!d) continue
+    if (!dateCounts[d]) dateCounts[d] = []
+    dateCounts[d].push(b.id)
+  }
+  const conflicted = new Set<string>()
+  for (const ids of Object.values(dateCounts)) {
+    if (ids.length > 1) ids.forEach((id) => conflicted.add(id))
+  }
+  return conflicted
 }
 
 // 全ブックマークの最早日・最遅日を計算
@@ -60,6 +77,7 @@ export function GanttView({ bookmarks, selectedId }: GanttViewProps) {
   const totalDays =
     differenceInCalendarDays(parseISO(maxDate), parseISO(minDate)) + 7
   const monthHeaders = buildMonthHeaders(minDate, totalDays)
+  const conflictedIds = getConflictedIds(bookmarks)
 
   function toPct(dateStr: string): number {
     return (
@@ -110,6 +128,7 @@ export function GanttView({ bookmarks, selectedId }: GanttViewProps) {
         {/* 各学校の行 */}
         {bookmarks.map((b) => {
           const isDimmed = selectedId !== null && b.id !== selectedId
+          const isConflicted = conflictedIds.has(b.id)
           const appStartPct = toPct(b.schedule.application_start)
           const appEndPct = toPct(b.schedule.application_end)
           const appWidthPct = appEndPct - appStartPct
@@ -123,9 +142,14 @@ export function GanttView({ bookmarks, selectedId }: GanttViewProps) {
             >
               {/* 学校名 */}
               <div className="w-44 shrink-0 pr-3 text-right">
-                <p className="text-sm font-semibold text-text-main leading-tight truncate">
-                  {b.university_name}
-                </p>
+                <div className="flex items-center justify-end gap-1">
+                  {isConflicted && (
+                    <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
+                  )}
+                  <p className="text-sm font-semibold text-text-main leading-tight truncate">
+                    {b.university_name}
+                  </p>
+                </div>
                 <p className="text-[10px] text-text-sub truncate">{b.department}</p>
               </div>
 
@@ -145,15 +169,20 @@ export function GanttView({ bookmarks, selectedId }: GanttViewProps) {
                 {POINT_EVENTS.map((eventType) => {
                   const dateStr = b.schedule[eventType]
                   if (!dateStr) return null
+                  const isDotConflicted = eventType === 'exam_date' && isConflicted
                   return (
                     <div
                       key={eventType}
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-white shadow-sm"
+                      className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                        isDotConflicted ? 'ring-2 ring-destructive ring-offset-1' : ''
+                      }`}
                       style={{
                         left: `${toPct(dateStr)}%`,
-                        backgroundColor: EVENT_CONFIG[eventType].color,
+                        backgroundColor: isDotConflicted
+                          ? '#AF4448'
+                          : EVENT_CONFIG[eventType].color,
                       }}
-                      title={`${EVENT_CONFIG[eventType].label}: ${dateStr}`}
+                      title={`${EVENT_CONFIG[eventType].label}: ${dateStr}${isDotConflicted ? ' ⚠️ 重複' : ''}`}
                     />
                   )
                 })}
