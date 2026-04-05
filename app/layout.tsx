@@ -3,7 +3,7 @@ import { Playfair_Display, DM_Sans, Noto_Sans_JP, Geist } from "next/font/google
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/Navbar";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -39,15 +39,10 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans relative bg-background text-foreground transition-colors duration-300">
-        <ThemeProvider
-          attribute="data-theme"
-          defaultTheme="sepia"
-          enableSystem={false}
-          storageKey="go-in-theme"
-        >
+        <Providers>
           <Navbar />
           {children}
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
