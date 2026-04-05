@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, GraduationCap, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createBrowserClient } from "@/lib/supabase/browser";
 
 interface Schedule {
   id: string;
@@ -31,13 +32,26 @@ interface SchoolCardProps {
 export function SchoolCard({ university }: SchoolCardProps) {
   const router = useRouter();
   const typeColorClass =
-    university.type === "国立" || university.type === "公立"
+    university.type === "国立" ||
+    university.type === "公立" ||
+    university.type === "国公立"
       ? "bg-badge-public text-badge-public-text"
       : "bg-badge-private text-badge-private-text";
 
-  const handleAddToCalendar = () => {
-    // In a real scenario, check if logged in. If not, redirect to login.
-    router.push("/auth/login");
+  const handleAddToCalendar = async () => {
+    const supabase = createBrowserClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
+
+    // TODO: 実際のカレンダー追加ロジックをここに実装
+    console.log("Adding to calendar for user:", user.id);
+    router.push("/calendar");
   };
 
   return (
@@ -49,7 +63,9 @@ export function SchoolCard({ university }: SchoolCardProps) {
           <Badge
             className={`${typeColorClass} rounded-xl border-none font-medium`}
           >
-            {university.type}
+            {university.type === "国立" || university.type === "公立"
+              ? "国公立"
+              : university.type}
           </Badge>
           <Button
             variant="ghost"

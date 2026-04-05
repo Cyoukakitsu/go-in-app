@@ -1,9 +1,12 @@
+// components/calendar/SchoolSidebar.tsx
+import { Trash2 } from 'lucide-react'
 import { Bookmark } from './types'
 
 interface SchoolSidebarProps {
   bookmarks: Bookmark[]
   selectedId: string | null
   onSelect: (id: string | null) => void
+  onDelete: (id: string) => void
 }
 
 const STATUS_LABEL: Record<Bookmark['status'], string> = {
@@ -14,7 +17,7 @@ const STATUS_LABEL: Record<Bookmark['status'], string> = {
   failed: '不合格',
 }
 
-export function SchoolSidebar({ bookmarks, selectedId, onSelect }: SchoolSidebarProps) {
+export function SchoolSidebar({ bookmarks, selectedId, onSelect, onDelete }: SchoolSidebarProps) {
   return (
     <aside className="w-full lg:w-60 shrink-0 bg-bg-card border border-border-custom rounded-2xl overflow-hidden self-start lg:sticky lg:top-6">
       <div className="p-4 border-b border-border-custom">
@@ -41,26 +44,40 @@ export function SchoolSidebar({ bookmarks, selectedId, onSelect }: SchoolSidebar
             : 'bg-badge-private text-badge-private-text'
 
         return (
-          <button
+          <div
             key={b.id}
-            onClick={() => onSelect(isSelected ? null : b.id)}
-            className={`w-full text-left px-4 py-3 transition-colors border-b border-border-custom last:border-b-0 ${
-              isSelected
-                ? 'bg-primary/5 border-l-2 border-l-primary'
-                : 'hover:bg-bg-hover border-l-2 border-l-transparent'
+            className={`group relative border-b border-border-custom last:border-b-0 ${
+              isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-bg-hover border-l-2 border-l-transparent'
             }`}
           >
-            <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-primary' : 'text-text-main'}`}>
-              {b.university_name}
-            </p>
-            <p className="text-text-sub text-xs mt-0.5 truncate">{b.department}</p>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${typeColor}`}>
-                {b.type}
-              </span>
-              <span className="text-[10px] text-text-muted">{STATUS_LABEL[b.status]}</span>
-            </div>
-          </button>
+            <button
+              onClick={() => onSelect(isSelected ? null : b.id)}
+              className="w-full text-left px-4 py-3 pr-10 transition-colors"
+            >
+              <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-primary' : 'text-text-main'}`}>
+                {b.university_name}
+              </p>
+              <p className="text-text-sub text-xs mt-0.5 truncate">{b.department}</p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${typeColor}`}>
+                  {b.type}
+                </span>
+                <span className="text-[10px] text-text-muted">{STATUS_LABEL[b.status]}</span>
+              </div>
+            </button>
+
+            {/* 削除ボタン（ホバーで表示） */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(b.id)
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-text-muted hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
+              title="削除"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )
       })}
     </aside>

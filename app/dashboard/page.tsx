@@ -1,6 +1,6 @@
 import { SchoolCard } from "@/components/SchoolCard";
 import { SearchFilters } from "@/components/SearchFilters";
-import { supabase } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase/server";
 import { School } from "lucide-react";
 import { Suspense } from "react";
 
@@ -13,10 +13,13 @@ export default async function DashboardPage(props: {
   const query = ((searchParams.q as string) || "").trim();
   const type = (searchParams.type as string) || "all";
 
+  const supabase = await createServerClient();
+
   // universitiesとuniversity_schedulesを結合して取得
   let dbQuery = supabase
     .from("universities")
-    .select(`
+    .select(
+      `
       id,
       name_ja,
       name_zh,
@@ -32,21 +35,20 @@ export default async function DashboardPage(props: {
         tags,
         year
       )
-    `)
+    `,
+    )
     .order("name_ja");
 
   // カテゴリフィルタ
   if (type === "public") {
-    dbQuery = dbQuery.in("type", ["国立", "公立"]);
+    dbQuery = dbQuery.in("type", ["国立", "公立", "国公立"]);
   } else if (type === "private") {
     dbQuery = dbQuery.eq("type", "私立");
   }
 
   // テキスト検索（学校名 or 中国語名）
   if (query) {
-    dbQuery = dbQuery.or(
-      `name_ja.ilike.%${query}%,name_zh.ilike.%${query}%`
-    );
+    dbQuery = dbQuery.or(`name_ja.ilike.%${query}%,name_zh.ilike.%${query}%`);
   }
 
   const { data: universities, error } = await dbQuery;
@@ -74,7 +76,7 @@ export default async function DashboardPage(props: {
   }));
 
   return (
-    <div className="min-h-screen bg-bg-main">
+    <div className="min-h-screen bg-bg-main pt-20 md:pt-24">
       {/* Header Section */}
       <header className="pt-16 pb-24 px-6 max-w-7xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 bg-primary/5 text-primary rounded-full px-4 py-2 text-sm font-bold mb-6">

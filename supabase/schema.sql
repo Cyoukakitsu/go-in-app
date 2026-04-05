@@ -3,7 +3,7 @@ CREATE TABLE universities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name_ja TEXT NOT NULL,
   name_zh TEXT NOT NULL,
-  type TEXT CHECK (type IN ('国立', '公立', '私立')) NOT NULL,
+  type TEXT CHECK (type IN ('国立', '公立', '私立', '国公立')) NOT NULL,
   departments JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

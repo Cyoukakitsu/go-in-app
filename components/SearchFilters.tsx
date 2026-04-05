@@ -30,7 +30,10 @@ export function SearchFilters() {
       params.delete("q");
     }
     router.push(`?${params.toString()}`, { scroll: false });
-  }, [debouncedSearch, router, searchParams]);
+    // searchParamsを依存配列に含めると、router.pushによるURL更新が再度useEffectを
+    // トリガーして無限ループになるため、debouncedSearchの変化のみに反応させる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   const handleFilter = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
