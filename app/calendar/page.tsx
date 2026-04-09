@@ -24,13 +24,6 @@ export default function CalendarPage() {
 
   const fetchBookmarks = async () => {
     const supabase = createBrowserClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/auth/login')
-      return
-    }
-
     const { data } = await supabase
       .from('user_schedules')
       .select('*')
@@ -41,7 +34,22 @@ export default function CalendarPage() {
   }
 
   useEffect(() => {
-    fetchBookmarks()
+    const supabase = createBrowserClient()
+
+    // 認証状態が確定してからブックマークを取得する
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+        if (!session) {
+          router.push('/auth/login')
+        } else {
+          fetchBookmarks()
+        }
+      } else if (event === 'SIGNED_OUT') {
+        router.push('/auth/login')
+      }
+    })
+
+    return () => subscription.unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

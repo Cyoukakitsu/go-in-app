@@ -63,7 +63,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     defaultValues: {
       email: "",
       password: "",
-      confirmPassword: "",
+      confirmPassword: undefined,
       fullName: "",
     },
   });
@@ -105,8 +105,11 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
     }
 
-    router.push("/calendar");
-    router.refresh();
+    // 添加短暂延迟，确保认证状态更新后再跳转
+    setTimeout(() => {
+      router.push("/calendar");
+      router.refresh(); // 刷新路由以确保状态更新
+    }, 100);
   };
 
   const title = mode === "login" ? "ログイン" : "新規登録";
@@ -126,7 +129,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       </Link>
 
       <Card className="w-full max-w-md bg-bg-card border-border-custom rounded-2xl shadow-xl overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-primary to-accent" />
+        <div className="h-2 bg-linear-to-r from-primary to-accent" />
 
         <CardHeader className="pt-10 pb-6 text-center">
           <CardTitle className="text-3xl font-serif text-text-main">
