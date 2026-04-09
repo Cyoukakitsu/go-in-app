@@ -250,9 +250,19 @@ shadcn/uiのコンポーネントを使用する際は、上記カラーパレ�
 ## 学校データについて
 
 - 学校名のマスタデータ（日本語名 + 中国語名 + 研究科）はJSONファイルまたはSupabaseのseedデータとして事前に用意する
-- 入試日程データ（出願日・試験日）も事前に手動で整理してseedする
+- 入試日程データは **jpss.jp からの月次バッチスクレイピング** で自動更新する（手動入力は廃止）
 - 初期データはTOP 50の人気校をカバーすればOK
 - 学校検索はオートコンプリート対応（ユーザーが1文字入力するとマッチする候補を表示）
+
+### スクレイピング仕様（jpss.jp）
+
+- **対象サイト**: https://www.jpss.jp/ja/grad/{university_id}/{course_id}/
+- **URL発見**: sitemap2.xml から `/ja/grad/` 系URLを全抽出
+- **パース方法**: Cheerio（SSRページのため Puppeteer 不要）
+- **取得フィールド**: `<dt>/<dd>` タグの出願期間開始日・終了日・試験日・合格発表日
+- **実行タイミング**: Vercel Cron Job（月1回）
+- **robots.txt**: `Allow: /`（全クロール許可済み）
+- **追加パッケージ**: `cheerio` のみ
 
 ---
 
@@ -297,3 +307,11 @@ shadcn/uiのコンポーネントを使用する際は、上記カラーパレ�
 - Vercelにデプロイ
 - ランディングページ作成
 - 小紅書での宣伝コンテンツ準備
+
+### Phase 5: スクレイピング自動化
+
+- `pnpm add cheerio` でパッケージ追加
+- `/api/scrape` API Route 実装（sitemap取得 → Cheerioパース → Supabase upsert）
+- Vercel Cron Job 設定（月1回、`vercel.json`）
+- バッチ分割対応（Hobby Planの60秒タイムアウト対策）
+- ダッシュボードに「データ最終更新日」表示

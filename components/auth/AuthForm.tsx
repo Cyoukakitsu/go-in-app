@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +20,31 @@ import { Mail, Lock, Loader2, ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import { createBrowserClient } from "@/lib/supabase/browser";
 
+const authSchema = z
+  .object({
+    email: z.string().email("有効なメールアドレスを入力してください。"),
+    password: z.string().min(6, "パスワードは6文字以上で入力してください。"),
+    confirmPassword: z.string().optional(),
+    fullName: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      if (
+        data.confirmPassword !== undefined &&
+        data.password !== data.confirmPassword
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "パスワードが一致しません。",
+      path: ["confirmPassword"],
+    },
+  );
+
+type AuthFormValues = z.infer<typeof authSchema>;
+
 interface AuthFormProps {
   mode: "login" | "signup";
 }
@@ -24,14 +52,23 @@ interface AuthFormProps {
 export function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AuthFormValues>({
+    resolver: zodResolver(authSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: undefined,
+      fullName: "",
+    },
+  });
+
+  const onSubmit = async (values: AuthFormValues) => {
     setLoading(true);
     setErrorMsg(null);
 
@@ -39,8 +76,8 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
       });
       if (error) {
         setErrorMsg("メールアドレスまたはパスワードが正しくありません。");
@@ -48,18 +85,12 @@ export function AuthForm({ mode }: AuthFormProps) {
         return;
       }
     } else {
-      if (password !== confirmPassword) {
-        setErrorMsg("パスワードが一致しません。");
-        setLoading(false);
-        return;
-      }
-
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: values.email,
+        password: values.password,
         options: {
           data: {
-            full_name: fullName,
+            full_name: values.fullName,
           },
         },
       });
@@ -74,8 +105,11 @@ export function AuthForm({ mode }: AuthFormProps) {
       }
     }
 
-    router.push("/calendar");
-    router.refresh();
+    // 添加短暂延迟，确保认证状态更新后再跳转
+    setTimeout(() => {
+      router.push("/calendar");
+      router.refresh(); // 刷新路由以确保状态更新
+    }, 100);
   };
 
   const title = mode === "login" ? "ログイン" : "新規登録";
@@ -95,7 +129,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       </Link>
 
       <Card className="w-full max-w-md bg-bg-card border-border-custom rounded-2xl shadow-xl overflow-hidden">
-        <div className="h-2 bg-gradient-to-r from-primary to-accent" />
+        <div className="h-2 bg-linear-to-r from-primary to-accent" />
 
         <CardHeader className="pt-10 pb-6 text-center">
           <CardTitle className="text-3xl font-serif text-text-main">
@@ -106,10 +140,10 @@ export function AuthForm({ mode }: AuthFormProps) {
           </CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-6 px-8">
             {errorMsg && (
-              <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-4 py-3">
+              <p className="text-sm text-destructive bg-destructive/10 rounded-xl px-4 py-3 font-medium">
                 {errorMsg}
               </p>
             )}
@@ -123,14 +157,16 @@ export function AuthForm({ mode }: AuthFormProps) {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                   <Input
                     id="fullName"
-                    type="text"
                     placeholder="山田 太郎"
                     className="pl-10 border-primary/15 rounded-xl focus:border-accent focus:ring-4 focus:ring-accent/10 h-12"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
+                    {...register("fullName")}
                   />
                 </div>
+                {errors.fullName && (
+                  <p className="text-xs text-destructive font-medium ml-1">
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
             )}
 
@@ -145,11 +181,14 @@ export function AuthForm({ mode }: AuthFormProps) {
                   type="email"
                   placeholder="name@example.com"
                   className="pl-10 border-primary/15 rounded-xl focus:border-accent focus:ring-4 focus:ring-accent/10 h-12"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register("email")}
                 />
               </div>
+              {errors.email && (
+                <p className="text-xs text-destructive font-medium ml-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -163,12 +202,14 @@ export function AuthForm({ mode }: AuthFormProps) {
                   type="password"
                   placeholder="••••••••"
                   className="pl-10 border-primary/15 rounded-xl focus:border-accent focus:ring-4 focus:ring-accent/10 h-12"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
+                  {...register("password")}
                 />
               </div>
+              {errors.password && (
+                <p className="text-xs text-destructive font-medium ml-1">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {mode === "signup" && (
@@ -177,7 +218,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                   htmlFor="confirmPassword"
                   className="text-text-main font-bold"
                 >
-                  パスワード（確認）
+                  パスワード（确认）
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
@@ -186,12 +227,14 @@ export function AuthForm({ mode }: AuthFormProps) {
                     type="password"
                     placeholder="••••••••"
                     className="pl-10 border-primary/15 rounded-xl focus:border-accent focus:ring-4 focus:ring-accent/10 h-12"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    minLength={6}
+                    {...register("confirmPassword")}
                   />
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-destructive font-medium ml-1">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
