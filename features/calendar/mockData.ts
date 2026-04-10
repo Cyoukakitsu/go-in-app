@@ -1,5 +1,5 @@
 // components/calendar/mockData.ts
-import { Bookmark } from '../types'
+import { Bookmark } from './types'
 
 export const MOCK_BOOKMARKS: Bookmark[] = [
   {
