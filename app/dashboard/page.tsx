@@ -1,6 +1,6 @@
-import { SchoolCard } from "@/components/SchoolCard";
-import { SearchFilters } from "@/components/SearchFilters";
-import { createServerClient } from "@/lib/supabase/server";
+import { SchoolCard } from "@/features/dashboard/components/SchoolCard";
+import { SearchFilters } from "@/features/dashboard/components/SearchFilters";
+import { createServerClient } from "@/shared/lib/supabase/server";
 import { School } from "lucide-react";
 import { Suspense } from "react";
 
