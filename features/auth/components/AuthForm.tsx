@@ -15,7 +15,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/shared/ui/card";
 import { Mail, Lock, Loader2, ArrowLeft, User } from "lucide-react";
 import Link from "next/link";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
