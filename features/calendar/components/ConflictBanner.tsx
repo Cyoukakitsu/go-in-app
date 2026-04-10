@@ -1,7 +1,7 @@
 // components/calendar/ConflictBanner.tsx
 import { AlertTriangle } from 'lucide-react'
-import { Bookmark } from './types'
-import { formatDate } from './utils'
+import { Bookmark } from '../types'
+import { formatDate } from '../utils'
 
 interface ConflictBannerProps {
   bookmarks: Bookmark[]

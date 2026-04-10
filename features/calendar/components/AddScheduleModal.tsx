@@ -3,12 +3,12 @@
 
 import { useState } from "react";
 import { X, Search, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { createBrowserClient } from "@/lib/supabase/browser";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useDebounce } from "@/shared/hooks/use-debounce";
 
 interface AddScheduleModalProps {
   onClose: () => void;

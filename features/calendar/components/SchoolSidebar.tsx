@@ -1,6 +1,6 @@
 // components/calendar/SchoolSidebar.tsx
 import { Trash2 } from 'lucide-react'
-import { Bookmark } from './types'
+import { Bookmark } from '../types'
 
 interface SchoolSidebarProps {
   bookmarks: Bookmark[]
