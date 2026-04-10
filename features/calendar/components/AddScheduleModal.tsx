@@ -1,4 +1,4 @@
-// components/calendar/AddScheduleModal.tsx
+// features/calendar/components/AddScheduleModal.tsx
 "use client";
 
 import { useState } from "react";

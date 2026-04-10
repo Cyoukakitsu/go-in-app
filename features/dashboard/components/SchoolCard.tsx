@@ -50,7 +50,6 @@ export function SchoolCard({ university }: SchoolCardProps) {
     }
 
     // TODO: 実際のカレンダー追加ロジックをここに実装
-    console.log("Adding to calendar for user:", user.id);
     router.push("/calendar");
   };
 

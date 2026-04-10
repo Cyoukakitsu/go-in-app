@@ -1,4 +1,4 @@
-// components/calendar/types.ts
+// features/calendar/types.ts
 
 export type UniversityType = '国立' | '公立' | '私立'
 export type BookmarkStatus = 'planning' | 'applied' | 'examined' | 'passed' | 'failed'

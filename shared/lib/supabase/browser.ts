@@ -1,4 +1,4 @@
-// lib/supabase/browser.ts
+// shared/lib/supabase/browser.ts
 // ブラウザ（Client Component）用Supabaseクライアント
 import { createBrowserClient as _createBrowserClient } from '@supabase/auth-helpers-nextjs'
 

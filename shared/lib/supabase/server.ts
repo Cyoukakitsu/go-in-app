@@ -1,4 +1,4 @@
-// lib/supabase/server.ts
+// shared/lib/supabase/server.ts
 // サーバー（Server Component）用Supabaseクライアント
 import { createServerClient as _createServerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
