@@ -1,11 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
 import { Calendar, GraduationCap, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase/browser";
+import { createBrowserClient } from "@/shared/lib/supabase/browser";
 
 interface Schedule {
   id: string;
@@ -50,7 +50,6 @@ export function SchoolCard({ university }: SchoolCardProps) {
     }
 
     // TODO: 実際のカレンダー追加ロジックをここに実装
-    console.log("Adding to calendar for user:", user.id);
     router.push("/calendar");
   };
 

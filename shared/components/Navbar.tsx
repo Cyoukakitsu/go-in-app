@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { School, Calendar, User, LogOut, Palette, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { createBrowserClient } from "@/lib/supabase/browser";
+import { cn } from "@/shared/lib/utils";
+import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import { useEffect, useState } from "react";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useTheme } from "next-themes";
@@ -13,7 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/ui/dropdown-menu";
 
 export function Navbar() {
   const pathname = usePathname();

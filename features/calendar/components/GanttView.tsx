@@ -1,5 +1,5 @@
-// components/calendar/GanttView.tsx
-import { Bookmark, EVENT_CONFIG } from './types'
+// features/calendar/components/GanttView.tsx
+import { Bookmark, EVENT_CONFIG } from '../types'
 import { differenceInCalendarDays, parseISO, format, addDays } from 'date-fns'
 import { AlertTriangle } from 'lucide-react'
 

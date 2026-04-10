@@ -1,10 +1,10 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/ui/input";
 import { Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDebounce } from "@/lib/hooks/use-debounce";
+import { useDebounce } from "@/shared/hooks/use-debounce";
 
 export function SearchFilters() {
   const router = useRouter();

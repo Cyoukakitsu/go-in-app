@@ -1,6 +1,6 @@
-import { FlatEvent, EVENT_CONFIG } from './types'
+import { FlatEvent, EVENT_CONFIG } from '../types'
 import { differenceInCalendarDays, parseISO } from 'date-fns'
-import { formatDate } from './utils'
+import { formatDate } from '../utils'
 
 interface EventNodeProps {
   event: FlatEvent

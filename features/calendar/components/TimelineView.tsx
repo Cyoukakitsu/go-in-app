@@ -1,4 +1,4 @@
-import { Bookmark, FlatEvent, EventType } from './types'
+import { Bookmark, FlatEvent, EventType } from '../types'
 import { EventNode } from './EventNode'
 
 interface TimelineViewProps {

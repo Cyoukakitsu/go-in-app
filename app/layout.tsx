@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans, Noto_Sans_JP, Geist } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
-import { Navbar } from "@/components/Navbar";
-import { Providers } from "@/components/providers";
+import { cn } from "@/shared/lib/utils";
+import { Navbar } from "@/shared/components/Navbar";
+import { Providers } from "@/shared/components/providers";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
