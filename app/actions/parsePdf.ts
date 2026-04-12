@@ -21,6 +21,12 @@ export type ParseResult =
   | { success: true; data: ParsedSchedule }
   | { success: false; error: string }
 
+// OpenAIクライアントをモジュールスコープで初期化（関数呼び出しごとの再生成を避ける）
+const client = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY ?? '',
+})
+
 const SYSTEM_PROMPT = `あなたは日本の大学院募集要項PDFから入試日程情報を抽出するアシスタントです。
 テキストを分析し、以下のJSONフォーマットで情報を返してください。
 
@@ -49,8 +55,13 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
     return { success: false, error: 'ファイルが選択されていません' }
   }
 
+  // サーバーサイドでファイルサイズを検証（10MB上限）
+  const MAX_PDF_BYTES = 10 * 1024 * 1024 // 10 MB
+  if (file.size > MAX_PDF_BYTES) {
+    return { success: false, error: 'ファイルサイズが10MBを超えています' }
+  }
+
   if (!process.env.DEEPSEEK_API_KEY) {
-    console.error('DEEPSEEK_API_KEY is not set')
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
 
@@ -80,11 +91,6 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
 
   // DeepSeek APIを呼び出す
   try {
-    const client = new OpenAI({
-      baseURL: 'https://api.deepseek.com',
-      apiKey: process.env.DEEPSEEK_API_KEY,
-    })
-
     const response = await client.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
@@ -103,8 +109,12 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
       return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
     }
 
-    const parsed = JSON.parse(content) as ParsedSchedule
-    return { success: true, data: parsed }
+    // 型安全なJSONパース（構造ガードを追加）
+    const parsed: unknown = JSON.parse(content)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
+    }
+    return { success: true, data: parsed as ParsedSchedule }
   } catch {
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
