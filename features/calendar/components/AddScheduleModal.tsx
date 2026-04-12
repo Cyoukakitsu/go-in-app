@@ -9,13 +9,14 @@ import { Label } from "@/shared/ui/label";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/shared/hooks/use-debounce";
+import { PdfUploadTab } from "@/features/calendar/components/PdfUploadTab";
 
 interface AddScheduleModalProps {
   onClose: () => void;
   onAdded: () => void;
 }
 
-type Tab = "search" | "manual";
+type Tab = "search" | "manual" | "pdf";
 
 interface UniversityResult {
   id: string;
@@ -190,7 +191,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
         <div className="flex border-b border-border-custom">
           <button
             onClick={() => setTab("search")}
-            className={`flex-1 py-3 text-sm font-bold transition-all ${
+            className={`flex-1 py-3 text-xs font-bold transition-all ${
               tab === "search"
                 ? "text-primary border-b-2 border-primary"
                 : "text-text-sub hover:text-text-main"
@@ -200,13 +201,23 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
           </button>
           <button
             onClick={() => setTab("manual")}
-            className={`flex-1 py-3 text-sm font-bold transition-all ${
+            className={`flex-1 py-3 text-xs font-bold transition-all ${
               tab === "manual"
                 ? "text-primary border-b-2 border-primary"
                 : "text-text-sub hover:text-text-main"
             }`}
           >
             手動で入力
+          </button>
+          <button
+            onClick={() => setTab("pdf")}
+            className={`flex-1 py-3 text-xs font-bold transition-all ${
+              tab === "pdf"
+                ? "text-primary border-b-2 border-primary"
+                : "text-text-sub hover:text-text-main"
+            }`}
+          >
+            PDFから読み取る
           </button>
         </div>
 
@@ -318,6 +329,11 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
                 </div>
               )}
             </div>
+          )}
+
+          {/* PDFアップロードタブ */}
+          {tab === "pdf" && (
+            <PdfUploadTab onAdded={onAdded} />
           )}
 
           {/* 手動入力タブ */}
