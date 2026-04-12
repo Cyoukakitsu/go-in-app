@@ -74,16 +74,21 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
 
     setUiState('parsing')
 
-    const formData = new FormData()
-    formData.append('file', file)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
 
-    const result = await parsePdfAction(formData)
+      const result = await parsePdfAction(formData)
 
-    if (result.success) {
-      applyParsedData(result.data)
-      setUiState('preview')
-    } else {
-      setErrorMessage(result.error)
+      if (result.success) {
+        applyParsedData(result.data)
+        setUiState('preview')
+      } else {
+        setErrorMessage(result.error)
+        setUiState('error')
+      }
+    } catch {
+      setErrorMessage('通信エラーが発生しました。もう一度お試しください')
       setUiState('error')
     }
   }
@@ -94,7 +99,7 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) processFile(file)
+    if (file) void processFile(file)
     e.target.value = ''
   }
 
@@ -112,7 +117,7 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
     e.preventDefault()
     setIsDragging(false)
     const file = e.dataTransfer.files?.[0]
-    if (file) processFile(file)
+    if (file) void processFile(file)
   }
 
   const handleRetry = () => {
@@ -205,7 +210,7 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
     )
   }
 
-  // ④ error: エラー表示
+  // ③ error: エラー表示
   if (uiState === 'error') {
     return (
       <div className="space-y-4">
@@ -225,7 +230,7 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
     )
   }
 
-  // ③ preview: 解析結果フォーム
+  // ④ preview: 解析結果フォーム
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex items-center gap-2 p-3 bg-[rgba(196,149,106,0.1)] rounded-xl">
