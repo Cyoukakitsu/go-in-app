@@ -10,6 +10,7 @@ import { TimelineView } from '@/features/calendar/components/TimelineView'
 import { GanttView } from '@/features/calendar/components/GanttView'
 import { ConflictBanner } from '@/features/calendar/components/ConflictBanner'
 import { AddScheduleModal } from '@/features/calendar/components/AddScheduleModal'
+import { EditScheduleModal } from '@/features/calendar/components/EditScheduleModal'
 import { toBookmark } from '@/features/calendar/types'
 import type { Bookmark, ViewType, UserScheduleRow } from '@/features/calendar/types'
 import { createBrowserClient } from '@/shared/lib/supabase/browser'
@@ -21,6 +22,7 @@ export default function CalendarPage() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [editingSchedule, setEditingSchedule] = useState<UserScheduleRow | null>(null)
 
   const fetchBookmarks = async () => {
     const supabase = createBrowserClient()
@@ -52,6 +54,12 @@ export default function CalendarPage() {
     return () => subscription.unsubscribe()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const handleEdit = async (id: string) => {
+    const supabase = createBrowserClient()
+    const { data } = await supabase.from('user_schedules').select('*').eq('id', id).single()
+    if (data) setEditingSchedule(data as UserScheduleRow)
+  }
 
   const handleDelete = async (id: string) => {
     const supabase = createBrowserClient()
@@ -142,6 +150,7 @@ export default function CalendarPage() {
               selectedId={selectedSchoolId}
               onSelect={setSelectedSchoolId}
               onDelete={handleDelete}
+              onEdit={handleEdit}
             />
             <div className="flex-1 bg-bg-card border border-border-custom rounded-2xl p-6 min-h-[600px] flex flex-col">
               {activeView === 'timeline' ? (
@@ -159,6 +168,17 @@ export default function CalendarPage() {
           onClose={() => setShowAddModal(false)}
           onAdded={() => {
             setShowAddModal(false)
+            fetchBookmarks()
+          }}
+        />
+      )}
+
+      {editingSchedule && (
+        <EditScheduleModal
+          schedule={editingSchedule}
+          onClose={() => setEditingSchedule(null)}
+          onUpdated={() => {
+            setEditingSchedule(null)
             fetchBookmarks()
           }}
         />

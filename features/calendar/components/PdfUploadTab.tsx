@@ -1,143 +1,167 @@
-'use client'
+"use client";
 
-import { useState, useRef, DragEvent } from 'react'
-import { Upload, Loader2, FileText, AlertCircle } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
-import { Input } from '@/shared/ui/input'
-import { Label } from '@/shared/ui/label'
-import { createBrowserClient } from '@/shared/lib/supabase/browser'
-import { useQueryClient } from '@tanstack/react-query'
-import { parsePdfAction, ParsedSchedule } from '@/app/actions/parsePdf'
+import { useState, useRef, DragEvent } from "react";
+import { Upload, Loader2, FileText, AlertCircle, BookOpen, ChevronLeft } from "lucide-react";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Textarea } from "@/shared/ui/textarea";
+import { createBrowserClient } from "@/shared/lib/supabase/browser";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  parsePdfAction,
+  ParsedPdfData,
+  ParsedScheduleEntry,
+  ExamSession,
+} from "@/app/actions/parsePdf";
 
 interface PdfUploadTabProps {
-  onAdded: () => void
+  onAdded: () => void;
 }
 
-type UiState = 'idle' | 'parsing' | 'preview' | 'error'
+type UiState = "idle" | "parsing" | "selecting" | "selecting_session" | "preview" | "error";
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
-  const queryClient = useQueryClient()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [uiState, setUiState] = useState<UiState>('idle')
-  const [isDragging, setIsDragging] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uiState, setUiState] = useState<UiState>("idle");
+  const [isDragging, setIsDragging] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [parsedPdfData, setParsedPdfData] = useState<ParsedPdfData | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<ParsedScheduleEntry | null>(null);
 
   const [form, setForm] = useState<{
-    university_name: string
-    university_type: string
-    department: string
-    application_start: string
-    application_end: string
-    exam_date: string
-    interview_date: string
-    result_date: string
+    university_name: string;
+    university_type: string;
+    department: string;
+    application_start: string;
+    application_end: string;
+    exam_date: string;
+    interview_date: string;
+    result_date: string;
+    notes: string;
   }>({
-    university_name: '',
-    university_type: '私立',
-    department: '',
-    application_start: '',
-    application_end: '',
-    exam_date: '',
-    interview_date: '',
-    result_date: '',
-  })
+    university_name: "",
+    university_type: "私立",
+    department: "",
+    application_start: "",
+    application_end: "",
+    exam_date: "",
+    interview_date: "",
+    result_date: "",
+    notes: "",
+  });
 
-  const applyParsedData = (data: ParsedSchedule) => {
+  const applySession = (session: ExamSession, entry: ParsedScheduleEntry, base: ParsedPdfData) => {
+    const dept = [entry.department, entry.specialization].filter(Boolean).join(" / ");
     setForm({
-      university_name: data.university_name ?? '',
-      university_type: data.university_type ?? '私立',
-      department: data.department ?? '',
-      application_start: data.application_start ?? '',
-      application_end: data.application_end ?? '',
-      exam_date: data.exam_date ?? '',
-      interview_date: data.interview_date ?? '',
-      result_date: data.result_date ?? '',
-    })
-  }
+      university_name: base.university_name ?? "",
+      university_type: base.university_type ?? "私立",
+      department: dept,
+      application_start: session.application_start ?? "",
+      application_end: session.application_end ?? "",
+      exam_date: session.exam_date ?? "",
+      interview_date: session.interview_date ?? "",
+      result_date: session.result_date ?? "",
+      notes: "",
+    });
+  };
 
   const processFile = async (file: File) => {
     if (file.size > MAX_FILE_SIZE) {
-      setErrorMessage('ファイルサイズが10MBを超えています')
-      setUiState('error')
-      return
+      setErrorMessage("ファイルサイズが10MBを超えています");
+      setUiState("error");
+      return;
     }
 
-    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-      setErrorMessage('PDFファイルを選択してください')
-      setUiState('error')
-      return
+    if (file.type !== "application/pdf" && !file.name.endsWith(".pdf")) {
+      setErrorMessage("PDFファイルを選択してください");
+      setUiState("error");
+      return;
     }
 
-    setUiState('parsing')
+    setUiState("parsing");
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const result = await parsePdfAction(formData)
+      const formData = new FormData();
+      formData.append("file", file);
+      const result = await parsePdfAction(formData);
 
       if (result.success) {
-        applyParsedData(result.data)
-        setUiState('preview')
+        setParsedPdfData(result.data);
+        if (result.data.schedules.length === 1) {
+          handleSelectEntryDirect(result.data.schedules[0], result.data);
+        } else {
+          setUiState("selecting");
+        }
       } else {
-        setErrorMessage(result.error)
-        setUiState('error')
+        setErrorMessage(result.error);
+        setUiState("error");
       }
     } catch {
-      setErrorMessage('通信エラーが発生しました。もう一度お試しください')
-      setUiState('error')
+      setErrorMessage("通信エラーが発生しました。もう一度お試しください");
+      setUiState("error");
     }
-  }
+  };
 
-  const handleClick = () => {
-    fileInputRef.current?.click()
-  }
+  // processFile内でparsedPdfDataがまだセットされていないため、直接引数で渡す版
+  const handleSelectEntryDirect = (entry: ParsedScheduleEntry, base: ParsedPdfData) => {
+    if (entry.sessions.length === 1) {
+      applySession(entry.sessions[0], entry, base);
+      setUiState("preview");
+    } else {
+      setSelectedEntry(entry);
+      setUiState("selecting_session");
+    }
+  };
+
+  const handleClick = () => fileInputRef.current?.click();
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) void processFile(file)
-    e.target.value = ''
-  }
+    const file = e.target.files?.[0];
+    if (file) void processFile(file);
+    e.target.value = "";
+  };
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
+    e.preventDefault();
+    setIsDragging(false);
+  };
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const file = e.dataTransfer.files?.[0]
-    if (file) void processFile(file)
-  }
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) void processFile(file);
+  };
 
   const handleRetry = () => {
-    setUiState('idle')
-    setErrorMessage('')
-  }
+    setUiState("idle");
+    setErrorMessage("");
+    setParsedPdfData(null);
+    setSelectedEntry(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!form.university_name || isSubmitting) return
+    e.preventDefault();
+    if (!form.university_name || isSubmitting) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const supabase = createBrowserClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (!user) throw new Error('Unauthorized')
+      const supabase = createBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Unauthorized");
 
-      const { error } = await supabase.from('user_schedules').insert({
+      const { error } = await supabase.from("user_schedules").insert({
         user_id: user.id,
         university_name: form.university_name,
         university_type: form.university_type,
@@ -147,22 +171,24 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
         exam_date: form.exam_date || null,
         interview_date: form.interview_date || null,
         result_date: form.result_date || null,
-      })
+        notes: form.notes || null,
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ['user-schedules'] })
-      onAdded()
-    } catch {
-      setErrorMessage('保存に失敗しました。もう一度お試しください')
-      setUiState('error')
+      queryClient.invalidateQueries({ queryKey: ["user-schedules"] });
+      onAdded();
+    } catch (err) {
+      console.error("[PdfUploadTab] 保存エラー:", err);
+      setErrorMessage("保存に失敗しました。もう一度お試しください");
+      setUiState("error");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  // ① idle: アップロードエリア
-  if (uiState === 'idle') {
+  // ① idle
+  if (uiState === "idle") {
     return (
       <div className="space-y-4">
         <input
@@ -181,37 +207,132 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
             border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer
             transition-all duration-200 select-none
             ${isDragging
-              ? 'border-[#C4956A] bg-[rgba(196,149,106,0.08)]'
-              : 'border-[rgba(111,78,55,0.3)] hover:border-[#C4956A] hover:bg-[rgba(196,149,106,0.04)]'
+              ? "border-[#C4956A] bg-[rgba(196,149,106,0.08)]"
+              : "border-[rgba(111,78,55,0.3)] hover:border-[#C4956A] hover:bg-[rgba(196,149,106,0.04)]"
             }
           `}
         >
           <Upload className="w-10 h-10 text-[#C4956A] mx-auto mb-3" />
-          <p className="text-sm font-bold text-text-main mb-1">
-            PDFをここにドロップ
-          </p>
-          <p className="text-xs text-text-muted">
-            またはクリックしてファイルを選択
-          </p>
+          <p className="text-sm font-bold text-text-main mb-1">PDFをここにドロップ</p>
+          <p className="text-xs text-text-muted">またはクリックしてファイルを選択</p>
           <p className="text-xs text-text-muted mt-2">最大10MB・テキストベースPDFのみ</p>
         </div>
       </div>
-    )
+    );
   }
 
-  // ② parsing: 解析中
-  if (uiState === 'parsing') {
+  // ② parsing
+  if (uiState === "parsing") {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-[#6F4E37]" />
         <p className="text-sm font-bold text-text-main">募集要項を解析中...</p>
         <p className="text-xs text-text-muted">AIが日程情報を読み取っています</p>
       </div>
-    )
+    );
   }
 
-  // ③ error: エラー表示
-  if (uiState === 'error') {
+  // ③ selecting: 研究科・専攻の選択
+  if (uiState === "selecting" && parsedPdfData) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 p-3 bg-[rgba(196,149,106,0.1)] rounded-xl">
+          <BookOpen className="w-4 h-4 text-[#C4956A] shrink-0" />
+          <p className="text-xs text-text-sub">
+            {parsedPdfData.schedules.length}件の研究科が検出されました。追加する研究科を選択してください。
+          </p>
+        </div>
+        <div className="space-y-2">
+          {parsedPdfData.schedules.map((entry, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleSelectEntryDirect(entry, parsedPdfData)}
+              className="w-full text-left px-4 py-3 rounded-xl border border-[rgba(111,78,55,0.15)]
+                bg-bg-card hover:border-[#C4956A] hover:bg-[rgba(196,149,106,0.06)]
+                hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+            >
+              <p className="text-sm font-bold text-text-main">
+                {entry.department ?? "研究科不明"}
+              </p>
+              {entry.specialization && (
+                <p className="text-xs text-text-sub mt-0.5">{entry.specialization}</p>
+              )}
+              {entry.sessions.length > 1 && (
+                <p className="text-xs text-text-muted mt-1">試験 {entry.sessions.length}回</p>
+              )}
+            </button>
+          ))}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleRetry}
+          className="w-full h-12 border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl hover:bg-[#6F4E37] hover:text-white transition-all"
+        >
+          やり直す
+        </Button>
+      </div>
+    );
+  }
+
+  // ④ selecting_session: 試験回の選択
+  if (uiState === "selecting_session" && selectedEntry && parsedPdfData) {
+    return (
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setUiState(parsedPdfData.schedules.length > 1 ? "selecting" : "idle")}
+          className="flex items-center gap-1 text-xs text-text-sub hover:text-primary transition-colors"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" />
+          戻る
+        </button>
+
+        <div className="flex items-center gap-2 p-3 bg-[rgba(196,149,106,0.1)] rounded-xl">
+          <BookOpen className="w-4 h-4 text-[#C4956A] shrink-0" />
+          <div>
+            <p className="text-xs font-bold text-text-main">
+              {[selectedEntry.department, selectedEntry.specialization].filter(Boolean).join(" / ")}
+            </p>
+            <p className="text-xs text-text-sub mt-0.5">受験する試験を選択してください</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {selectedEntry.sessions.map((session, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                applySession(session, selectedEntry, parsedPdfData);
+                setUiState("preview");
+              }}
+              className="w-full text-left px-4 py-3 rounded-xl border border-[rgba(111,78,55,0.15)]
+                bg-bg-card hover:border-[#C4956A] hover:bg-[rgba(196,149,106,0.06)]
+                hover:-translate-y-0.5 hover:shadow-md transition-all duration-200"
+            >
+              <p className="text-sm font-bold text-text-main">
+                {i === 0 ? "夏季入試" : i === 1 ? "冬季入試" : `第${i + 1}次試験`}
+              </p>
+            </button>
+          ))}
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleRetry}
+          className="w-full h-12 border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl hover:bg-[#6F4E37] hover:text-white transition-all"
+        >
+          やり直す
+        </Button>
+      </div>
+    );
+  }
+
+  // ⑤ error
+  if (uiState === "error") {
     return (
       <div className="space-y-4">
         <div className="flex flex-col items-center justify-center py-10 space-y-3">
@@ -227,10 +348,10 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
           別のPDFを試す
         </Button>
       </div>
-    )
+    );
   }
 
-  // ④ preview: 解析結果フォーム
+  // ⑥ preview: 解析結果フォーム
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex items-center gap-2 p-3 bg-[rgba(196,149,106,0.1)] rounded-xl">
@@ -256,15 +377,15 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
       <div className="space-y-2">
         <Label className="text-text-main font-bold text-sm">種別</Label>
         <div className="flex gap-2">
-          {(['国公立', '私立'] as const).map((t) => (
+          {(["国公立", "私立"] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setForm({ ...form, university_type: t })}
               className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
                 form.university_type === t
-                  ? 'bg-primary text-white'
-                  : 'bg-primary/5 text-primary hover:bg-primary/10'
+                  ? "bg-primary text-white"
+                  : "bg-primary/5 text-primary hover:bg-primary/10"
               }`}
             >
               {t}
@@ -306,7 +427,7 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label className="text-text-main font-bold text-sm">試験日</Label>
+          <Label className="text-text-main font-bold text-sm">筆記試験日</Label>
           <Input
             type="date"
             className="border-primary/15 rounded-xl h-11"
@@ -335,12 +456,30 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
         />
       </div>
 
+      <div className="space-y-2">
+        <Label className="text-text-main font-bold text-sm">備考</Label>
+        <Textarea
+          placeholder="メモや備考を入力してください"
+          className="border-primary/15 rounded-xl resize-none min-h-24"
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+        />
+      </div>
+
       <div className="flex gap-2 pt-2">
         <Button
           type="button"
           variant="outline"
-          onClick={handleRetry}
-          className="flex-1 border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl hover:bg-[#6F4E37] hover:text-white transition-all"
+          onClick={() => {
+            if (selectedEntry && selectedEntry.sessions.length > 1) {
+              setUiState("selecting_session");
+            } else if (parsedPdfData && parsedPdfData.schedules.length > 1) {
+              setUiState("selecting");
+            } else {
+              handleRetry();
+            }
+          }}
+          className="flex-1 h-12 border-[1.5px] border-[#6F4E37] text-[#6F4E37] rounded-xl hover:bg-[#6F4E37] hover:text-white transition-all"
         >
           やり直す
         </Button>
@@ -349,13 +488,9 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
           disabled={isSubmitting || !form.university_name}
           className="flex-1 bg-primary text-white rounded-xl h-12 font-bold hover:opacity-90 shadow-md"
         >
-          {isSubmitting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            '追加する'
-          )}
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "追加する"}
         </Button>
       </div>
     </form>
-  )
+  );
 }

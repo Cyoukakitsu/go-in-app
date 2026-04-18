@@ -6,6 +6,7 @@ import { X, Search, Loader2 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
+import { Textarea } from "@/shared/ui/textarea";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDebounce } from "@/shared/hooks/use-debounce";
@@ -57,6 +58,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
     exam_date: "",
     interview_date: "",
     result_date: "",
+    notes: "",
   });
 
   // 大学検索クエリ
@@ -110,6 +112,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
       exam_date?: string | null;
       interview_date?: string | null;
       result_date?: string | null;
+      notes?: string | null;
     }) => {
       const supabase = createBrowserClient();
       const {
@@ -158,6 +161,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
       university_name_zh: manual.university_name_zh || null,
       university_type: manual.university_type,
       department: manual.department || null,
+      notes: manual.notes || null,
       application_start: manual.application_start || null,
       application_end: manual.application_end || null,
       exam_date: manual.exam_date || null,
@@ -175,9 +179,9 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
       />
 
       {/* モーダル本体 */}
-      <div className="relative bg-bg-card border border-border-custom rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-bg-card border border-border-custom rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         {/* ヘッダー */}
-        <div className="flex items-center justify-between p-6 border-b border-border-custom">
+        <div className="flex items-center justify-between p-6 border-b border-border-custom shrink-0">
           <h2 className="text-xl font-serif text-text-main">学校を追加</h2>
           <button
             onClick={onClose}
@@ -188,7 +192,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
         </div>
 
         {/* タブ切替 */}
-        <div className="flex border-b border-border-custom">
+        <div className="flex border-b border-border-custom shrink-0">
           <button
             onClick={() => setTab("search")}
             className={`flex-1 py-3 text-xs font-bold transition-all ${
@@ -221,7 +225,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {/* 検索タブ */}
           {tab === "search" && (
             <div className="space-y-4">
@@ -297,7 +301,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
                           </p>
                           {s.exam_date && (
                             <p className="text-xs text-text-sub">
-                              試験日: {s.exam_date}
+                              筆記試験日: {s.exam_date}
                             </p>
                           )}
                           {s.application_end && (
@@ -354,21 +358,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-text-main font-bold text-sm">
-                  学校名（中国語）
-                </Label>
-                <Input
-                  placeholder="例：东京大学"
-                  className="border-primary/15 rounded-xl h-11"
-                  value={manual.university_name_zh}
-                  onChange={(e) =>
-                    setManual({ ...manual, university_name_zh: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
+<div className="space-y-2">
                 <Label className="text-text-main font-bold text-sm">種別</Label>
                 <div className="flex gap-2">
                   {(["国公立", "私立"] as const).map((t) => (
@@ -439,7 +429,7 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="text-text-main font-bold text-sm">
-                    試験日
+                    筆記試験日
                   </Label>
                   <Input
                     type="date"
@@ -475,6 +465,18 @@ export function AddScheduleModal({ onClose, onAdded }: AddScheduleModalProps) {
                   value={manual.result_date}
                   onChange={(e) =>
                     setManual({ ...manual, result_date: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-text-main font-bold text-sm">備考</Label>
+                <Textarea
+                  placeholder="メモや備考を入力してください"
+                  className="border-primary/15 rounded-xl resize-none min-h-[96px]"
+                  value={manual.notes}
+                  onChange={(e) =>
+                    setManual({ ...manual, notes: e.target.value })
                   }
                 />
               </div>
