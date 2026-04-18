@@ -2,9 +2,9 @@
 
 import OpenAI from 'openai'
 
-// pdf-parse の型定義が不完全な場合の対策
+// pdf-parse v2 の新しいAPI
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdf = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>
+const { PDFParse } = require('pdf-parse') as { PDFParse: new (opts: { data: Buffer }) => { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } }
 
 export interface ParsedSchedule {
   university_name: string | null
@@ -51,7 +51,8 @@ const SYSTEM_PROMPT = `あなたは日本の大学院募集要項PDFから入試
 export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
   const file = formData.get('file')
 
-  if (!file || !(file instanceof Blob)) {
+  console.log('[parsePdf] file=', file, 'type=', typeof file, 'instanceof Blob=', file instanceof Blob, 'instanceof File=', typeof File !== 'undefined' && file instanceof File)
+  if (!file || typeof file === 'string') {
     return { success: false, error: 'ファイルが選択されていません' }
   }
 
@@ -61,6 +62,7 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
     return { success: false, error: 'ファイルサイズが10MBを超えています' }
   }
 
+  console.log('[parsePdf] DEEPSEEK_API_KEY=', process.env.DEEPSEEK_API_KEY ? `set(${process.env.DEEPSEEK_API_KEY.slice(0, 8)}...)` : 'NOT SET')
   if (!process.env.DEEPSEEK_API_KEY) {
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
@@ -70,7 +72,9 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
   try {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const pdfData = await pdf(buffer)
+    const parser = new PDFParse({ data: buffer })
+    const pdfData = await parser.getText()
+    await parser.destroy()
     extractedText = pdfData.text
 
     if (!extractedText || extractedText.trim().length === 0) {
