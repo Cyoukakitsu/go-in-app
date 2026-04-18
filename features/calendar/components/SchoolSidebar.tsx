@@ -1,5 +1,5 @@
 // features/calendar/components/SchoolSidebar.tsx
-import { Trash2 } from 'lucide-react'
+import { Trash2, Pencil } from 'lucide-react'
 import { Bookmark } from '../types'
 
 interface SchoolSidebarProps {
@@ -7,6 +7,7 @@ interface SchoolSidebarProps {
   selectedId: string | null
   onSelect: (id: string | null) => void
   onDelete: (id: string) => void
+  onEdit: (id: string) => void
 }
 
 const STATUS_LABEL: Record<Bookmark['status'], string> = {
@@ -17,7 +18,7 @@ const STATUS_LABEL: Record<Bookmark['status'], string> = {
   failed: '不合格',
 }
 
-export function SchoolSidebar({ bookmarks, selectedId, onSelect, onDelete }: SchoolSidebarProps) {
+export function SchoolSidebar({ bookmarks, selectedId, onSelect, onDelete, onEdit }: SchoolSidebarProps) {
   return (
     <aside className="w-full lg:w-60 shrink-0 bg-bg-card border border-border-custom rounded-2xl overflow-hidden self-start lg:sticky lg:top-6">
       <div className="p-4 border-b border-border-custom">
@@ -52,7 +53,7 @@ export function SchoolSidebar({ bookmarks, selectedId, onSelect, onDelete }: Sch
           >
             <button
               onClick={() => onSelect(isSelected ? null : b.id)}
-              className="w-full text-left px-4 py-3 pr-10 transition-colors"
+              className="w-full text-left px-4 py-3 pr-16 transition-colors"
             >
               <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-primary' : 'text-text-main'}`}>
                 {b.university_name}
@@ -66,17 +67,29 @@ export function SchoolSidebar({ bookmarks, selectedId, onSelect, onDelete }: Sch
               </div>
             </button>
 
-            {/* 削除ボタン（ホバーで表示） */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete(b.id)
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-text-muted hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-all"
-              title="削除"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {/* 編集・削除ボタン（ホバーで表示） */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit(b.id)
+                }}
+                className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-all"
+                title="編集"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(b.id)
+                }}
+                className="p-1.5 rounded-lg text-text-muted hover:text-destructive hover:bg-destructive/10 transition-all"
+                title="削除"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )
       })}
