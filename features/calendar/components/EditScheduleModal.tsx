@@ -10,6 +10,14 @@ import { Textarea } from "@/shared/ui/textarea";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import type { UserScheduleRow } from "@/features/calendar/types";
 
+const STATUS_OPTIONS = [
+  { value: "planning",  label: "検討中",   cls: "text-text-muted bg-muted" },
+  { value: "applied",   label: "出願完了", cls: "text-primary bg-primary/10" },
+  { value: "examined",  label: "受験済",   cls: "text-[#8B5E3C] bg-[rgba(160,110,90,0.12)]" },
+  { value: "passed",    label: "合格",     cls: "text-badge-public-text bg-badge-public" },
+  { value: "failed",    label: "不合格",   cls: "text-destructive bg-destructive/10" },
+] as const;
+
 interface EditScheduleModalProps {
   schedule: UserScheduleRow;
   onClose: () => void;
@@ -27,6 +35,7 @@ export function EditScheduleModal({ schedule, onClose, onUpdated }: EditSchedule
     exam_date: schedule.exam_date ?? "",
     interview_date: schedule.interview_date ?? "",
     result_date: schedule.result_date ?? "",
+    status: schedule.status ?? "planning",
     notes: schedule.notes ?? "",
   });
 
@@ -47,6 +56,7 @@ export function EditScheduleModal({ schedule, onClose, onUpdated }: EditSchedule
         exam_date: form.exam_date || null,
         interview_date: form.interview_date || null,
         result_date: form.result_date || null,
+        status: form.status,
         notes: form.notes || null,
       })
       .eq("id", schedule.id);
@@ -157,14 +167,28 @@ export function EditScheduleModal({ schedule, onClose, onUpdated }: EditSchedule
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-text-main font-bold text-sm">合格発表日</Label>
-              <Input
-                type="date"
-                className="border-primary/15 rounded-xl h-11"
-                value={form.result_date}
-                onChange={(e) => setForm({ ...form, result_date: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-text-main font-bold text-sm">合格発表日</Label>
+                <Input
+                  type="date"
+                  className="border-primary/15 rounded-xl h-11"
+                  value={form.result_date}
+                  onChange={(e) => setForm({ ...form, result_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-text-main font-bold text-sm">ステータス</Label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="w-full h-11 rounded-xl border border-primary/15 bg-bg-card text-text-main text-sm px-3 outline-none focus:border-primary/40 cursor-pointer"
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="space-y-2">

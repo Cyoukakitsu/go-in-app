@@ -121,11 +121,11 @@ export function AuthForm({ mode }: AuthFormProps) {
   return (
     <div className="min-h-screen bg-bg-main flex flex-col items-center justify-center px-6">
       <Link
-        href="/dashboard"
+        href="/"
         className="mb-8 flex items-center gap-2 text-text-sub hover:text-primary transition-colors font-bold"
       >
         <ArrowLeft className="w-4 h-4" />
-        Dashboardに戻る
+        ホームに戻る
       </Link>
 
       <Card className="w-full max-w-md bg-bg-card border-border-custom rounded-2xl shadow-xl overflow-hidden">
