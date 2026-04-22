@@ -47,7 +47,7 @@ export default function CalendarPage() {
           fetchBookmarks()
         }
       } else if (event === 'SIGNED_OUT') {
-        router.push('/auth/login')
+        router.push('/')
       }
     })
 
