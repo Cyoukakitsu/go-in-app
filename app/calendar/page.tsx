@@ -47,11 +47,21 @@ export default function CalendarPage() {
           fetchBookmarks()
         }
       } else if (event === 'SIGNED_OUT') {
-        router.push('/auth/login')
+        router.push('/')
       }
     })
 
-    return () => subscription.unsubscribe()
+    // Navbarの全削除操作を受け取って再取得する
+    const handleSchedulesUpdated = () => {
+      setBookmarks([])
+      setSelectedSchoolId(null)
+    }
+    window.addEventListener('schedules-updated', handleSchedulesUpdated)
+
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('schedules-updated', handleSchedulesUpdated)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

@@ -28,7 +28,9 @@ export default function LandingPage() {
               機能
             </a>
             <a
-              href="#about"
+              href="https://cyoukakitsu-portfolio.pages.dev/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
             >
               運営者について
@@ -222,7 +224,9 @@ export default function LandingPage() {
               </a>
 
               <a
-                href="#about"
+                href="https://cyoukakitsu-portfolio.pages.dev/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 運営者について

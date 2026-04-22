@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { Mail, Lock, Loader2, ArrowLeft, User } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
 
@@ -25,7 +25,6 @@ const authSchema = z
     email: z.string().email("有効なメールアドレスを入力してください。"),
     password: z.string().min(6, "パスワードは6文字以上で入力してください。"),
     confirmPassword: z.string().optional(),
-    fullName: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -64,7 +63,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       email: "",
       password: "",
       confirmPassword: undefined,
-      fullName: "",
     },
   });
 
@@ -88,11 +86,6 @@ export function AuthForm({ mode }: AuthFormProps) {
       const { error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
-        options: {
-          data: {
-            full_name: values.fullName,
-          },
-        },
       });
       if (error) {
         if (error.message.includes("already registered")) {
@@ -148,29 +141,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               </p>
             )}
 
-            {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-text-main font-bold">
-                  お名前
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                  <Input
-                    id="fullName"
-                    placeholder="山田 太郎"
-                    className="pl-10 border-primary/15 rounded-xl focus:border-accent focus:ring-4 focus:ring-accent/10 h-12"
-                    {...register("fullName")}
-                  />
-                </div>
-                {errors.fullName && (
-                  <p className="text-xs text-destructive font-medium ml-1">
-                    {errors.fullName.message}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label htmlFor="email" className="text-text-main font-bold">
                 メールアドレス
               </Label>
