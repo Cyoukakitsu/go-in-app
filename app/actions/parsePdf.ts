@@ -2,9 +2,7 @@
 
 import { OpenRouter } from '@openrouter/sdk'
 
-// pdf-parse v2 の新しいAPI
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { PDFParse } = require('pdf-parse') as { PDFParse: new (opts: { data: Buffer }) => { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } }
+type PDFParseModule = { PDFParse: new (opts: { data: Buffer }) => { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } }
 
 // 試験回（第1次・第2次など）ごとの日程
 export interface ExamSession {
@@ -144,6 +142,8 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
 
   let extractedText: string
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PDFParse } = require('pdf-parse') as PDFParseModule
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const parser = new PDFParse({ data: buffer })
@@ -157,7 +157,8 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
         error: 'PDFのテキストを読み取れませんでした（画像PDFの可能性があります）',
       }
     }
-  } catch {
+  } catch (err) {
+    console.error('[parsePdfAction] PDF parse error:', err)
     return {
       success: false,
       error: 'PDFのテキストを読み取れませんでした（画像PDFの可能性があります）',
@@ -200,7 +201,8 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
     }
 
     return { success: true, data }
-  } catch {
+  } catch (err) {
+    console.error('[parsePdfAction] OpenRouter error:', err)
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
 }
