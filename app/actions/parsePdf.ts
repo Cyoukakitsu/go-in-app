@@ -2,8 +2,6 @@
 
 import { OpenRouter } from '@openrouter/sdk'
 
-type PDFParseModule = { PDFParse: new (opts: { data: Buffer }) => { getText: () => Promise<{ text: string }>; destroy: () => Promise<void> } }
-
 // 試験回（第1次・第2次など）ごとの日程
 export interface ExamSession {
   session_name: string | null  // 例: "第1次（夏季）"、"第2次（春季）"
@@ -124,48 +122,17 @@ function extractScheduleText(fullText: string): string {
   return combined.slice(0, MAX_TOTAL)
 }
 
-export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
-  const file = formData.get('file')
-
-  if (!file || typeof file === 'string') {
-    return { success: false, error: 'ファイルが選択されていません' }
-  }
-
-  const MAX_PDF_BYTES = 10 * 1024 * 1024
-  if (file.size > MAX_PDF_BYTES) {
-    return { success: false, error: 'ファイルサイズが10MBを超えています' }
-  }
-
+// ブラウザ側で抽出済みのテキストをAIで解析する
+export async function analyzeScheduleText(text: string): Promise<ParseResult> {
   if (!process.env.OPENROUTER_API_KEY) {
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
 
-  let extractedText: string
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PDFParse } = require('pdf-parse') as PDFParseModule
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const parser = new PDFParse({ data: buffer })
-    const pdfData = await parser.getText()
-    await parser.destroy()
-    extractedText = pdfData.text
-
-    if (!extractedText || extractedText.trim().length === 0) {
-      return {
-        success: false,
-        error: 'PDFのテキストを読み取れませんでした（画像PDFの可能性があります）',
-      }
-    }
-  } catch (err) {
-    console.error('[parsePdfAction] PDF parse error:', err)
-    return {
-      success: false,
-      error: 'PDFのテキストを読み取れませんでした（画像PDFの可能性があります）',
-    }
+  if (!text || text.trim().length === 0) {
+    return { success: false, error: 'PDFのテキストを読み取れませんでした（画像PDFの可能性があります）' }
   }
 
-  const truncatedText = extractScheduleText(extractedText)
+  const truncatedText = extractScheduleText(text)
 
   try {
     const response = await client.chat.send({
@@ -202,7 +169,7 @@ export async function parsePdfAction(formData: FormData): Promise<ParseResult> {
 
     return { success: true, data }
   } catch (err) {
-    console.error('[parsePdfAction] OpenRouter error:', err)
+    console.error('[analyzeScheduleText] OpenRouter error:', err)
     return { success: false, error: 'AI解析に失敗しました。手動入力をお試しください' }
   }
 }

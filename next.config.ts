@@ -1,12 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
+  // pdf-parse はクライアント側に移行したのでサーバー外部パッケージ不要
 };
 
 export default nextConfig;

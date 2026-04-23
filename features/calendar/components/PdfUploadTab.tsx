@@ -9,11 +9,33 @@ import { Textarea } from "@/shared/ui/textarea";
 import { createBrowserClient } from "@/shared/lib/supabase/browser";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  parsePdfAction,
+  analyzeScheduleText,
   ParsedPdfData,
   ParsedScheduleEntry,
   ExamSession,
 } from "@/app/actions/parsePdf";
+
+// pdfjs-dist でブラウザ側テキスト抽出（Vercel サーバーレスの制約を回避）
+async function extractPdfText(file: File): Promise<string> {
+  const pdfjsLib = await import("pdfjs-dist");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+  const pageTexts: string[] = [];
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const pageText = content.items
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((item: any) => ("str" in item ? (item.str as string) : ""))
+      .join(" ");
+    pageTexts.push(pageText);
+  }
+  await pdf.destroy();
+  return pageTexts.join("\n");
+}
 
 interface PdfUploadTabProps {
   onAdded: () => void;
@@ -87,9 +109,16 @@ export function PdfUploadTab({ onAdded }: PdfUploadTabProps) {
     setUiState("parsing");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const result = await parsePdfAction(formData);
+      // ブラウザ側でテキスト抽出（pdf-parse のサーバー依存を排除）
+      const text = await extractPdfText(file);
+
+      if (!text || text.trim().length === 0) {
+        setErrorMessage("PDFのテキストを読み取れませんでした（画像PDFの可能性があります）");
+        setUiState("error");
+        return;
+      }
+
+      const result = await analyzeScheduleText(text);
 
       if (result.success) {
         setParsedPdfData(result.data);
